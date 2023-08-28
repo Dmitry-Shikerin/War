@@ -92,8 +92,9 @@ namespace Война
             {
                 Console.WriteLine($"{Name} наносит яростный удар");
                 _rageCount -= ragePerFuriousBlow;
+                int damage = Damage + damagePerFurriousBlow;
 
-                return Damage + damagePerFurriousBlow;
+                return damage;
             }
 
             return Damage;
@@ -207,7 +208,10 @@ namespace Война
             if (_mana >= manaPerBurnOfFilth)
             {
                 Console.WriteLine($"{Name} использует ожог скверны");
-                return Damage + damagePerBurnOfFilt;
+
+                int damage = Damage + damagePerBurnOfFilt;
+
+                return damage;
             }
 
             return Damage;
@@ -270,7 +274,8 @@ namespace Война
             {
                 Console.WriteLine($"{Name} использует огненный шар и наносит {Damage + damagePerFayerBoll} урона");
                 _mana -= manaPerFayerBoll;
-                return Damage + damagePerFayerBoll;
+                int damage = Damage + damagePerFayerBoll;
+                return damage;
             }
 
             return Damage;
@@ -302,24 +307,26 @@ namespace Война
 
         private static void ConductBattle(Platoon platoon1, Platoon platoon2)
         {
+            int numberFirstPlatoon = 1;
+            int numberSecondPlatoon = 2;
+
             while (platoon1.Fighters.Count > 0 && platoon2.Fighters.Count > 0)
             {
-                Console.WriteLine("Атакует команда 1");
-
-                platoon1.Attack(platoon2.Fighters);
-                platoon1.ShowInfo();
-                platoon1.RemoveDeadFighters();
-                Console.WriteLine();
-
-                Console.WriteLine("Атакует команда 2");
-
-                platoon2.Attack(platoon1.Fighters);
-                platoon2.ShowInfo();
-                platoon2.RemoveDeadFighters();
-                Console.WriteLine();
+                ConductAttacPlatoon(platoon1, platoon2, numberFirstPlatoon);
+                ConductAttacPlatoon(platoon2, platoon1, numberSecondPlatoon);
 
                 Console.ReadKey();
             }
+        }
+
+        private static void ConductAttacPlatoon(Platoon attackingSquad, Platoon takingDamageSquad, int numberPlatoon)
+        {
+            Console.WriteLine($"Атакует команда {numberPlatoon}");
+
+            attackingSquad.Attack(takingDamageSquad.Fighters);
+            attackingSquad.ShowInfo();
+            attackingSquad.RemoveDeadFighters();
+            Console.WriteLine();
         }
 
         private static void ShowPlatoons(Platoon platoon1, Platoon platoon2)
@@ -387,7 +394,7 @@ namespace Война
             _fighters = fighters;
         }
         
-        public List<Fighter> Fighters => new List<Fighter>(_fighters);
+        public IReadOnlyList<Fighter> Fighters => _fighters;
 
         public void ShowInfo()
         {
@@ -409,7 +416,7 @@ namespace Война
             }
         }
 
-        public void Attack(List<Fighter> enemies)
+        public void Attack(IReadOnlyList<Fighter> enemies)
         {
             foreach (Fighter fighter in _fighters)
             {
