@@ -30,12 +30,11 @@ namespace Война
             Health = health;
             Armor = armor;
             Damage = damage;
-            IsAlive = true;
         }
 
         public string Name { get; protected set; }
         public int Health { get; protected set; }
-        public bool IsAlive { get; private set; }
+        public bool IsAlive => Health > 0;
         public int Damage { get; private set; }
 
         public virtual void TakeDamage(int damage)
@@ -50,7 +49,6 @@ namespace Война
             if (Health <= 0)
             {
                 Health = 0;
-                IsAlive = false;
             }
         }
 
@@ -275,6 +273,7 @@ namespace Война
                 Console.WriteLine($"{Name} использует огненный шар и наносит {Damage + damagePerFayerBoll} урона");
                 _mana -= manaPerFayerBoll;
                 int damage = Damage + damagePerFayerBoll;
+
                 return damage;
             }
 
@@ -344,7 +343,7 @@ namespace Война
             else if (platoon2.Fighters.Count == 0)
                 Console.WriteLine("Победила команда 1");
             else if (platoon1.Fighters.Count == 0)
-                Console.WriteLine("Поьбедила команда 2");
+                Console.WriteLine("Победила команда 2");
         }
     }
 
@@ -434,16 +433,16 @@ namespace Война
 
     public static class Utils
     {
-        private static Random _random = new Random();
+        private static Random s_random = new Random();
 
         public static int GetRandomValue(int minValue, int maxValue)
         {
-            return _random.Next(minValue, maxValue);
+            return s_random.Next(minValue, maxValue);
         }
 
         public static int GetRandomValue(int value)
         {
-            return _random.Next(value);
+            return s_random.Next(value);
         }
     }
 }
