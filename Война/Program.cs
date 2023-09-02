@@ -10,9 +10,11 @@ namespace Война
             PlatoonFactory platoonFactory = new PlatoonFactory();
 
             int platoonSize = 5;
+            string platoonName1 = "Отряд 1";
+            string platoonName2 = "Отряд 2";
 
-            Platoon platoon1 = platoonFactory.CreateRandom(platoonSize);
-            Platoon platoon2 = platoonFactory.CreateRandom(platoonSize);
+            Platoon platoon1 = platoonFactory.CreateRandom(platoonSize, platoonName1);
+            Platoon platoon2 = platoonFactory.CreateRandom(platoonSize, platoonName2);
 
             Arena arena = new Arena();
 
@@ -39,6 +41,11 @@ namespace Война
 
         public virtual void TakeDamage(int damage)
         {
+            if(IsAlive == false) 
+            {
+                return;
+            }
+
             if (Armor > damage)
             {
                 damage = Armor;
@@ -46,7 +53,7 @@ namespace Война
 
             Health -= damage - Armor;
 
-            if (Health <= 0)
+            if (IsAlive == false)
             {
                 Health = 0;
             }
@@ -58,7 +65,7 @@ namespace Война
             enemy.TakeDamage(currentDamege);
         }
 
-        public virtual int DealDamage()
+        protected virtual int DealDamage()
         {
             return Damage;
         }
@@ -77,7 +84,7 @@ namespace Война
 
         public Warriour() : base("Воин", 150, 12, 30) { }
 
-        public override int DealDamage()
+        protected override int DealDamage()
         {
             int ragePerBloW = 7;
             int ragePerFuriousBlow = 20;
@@ -121,7 +128,7 @@ namespace Война
             int maxValueSlope = 100;
             int slopeValue = 25;
 
-            int slope = Utils.GetRandomValue(minValueSlope, maxValueSlope);
+            int slope = Utils.CreateRandomValue(minValueSlope, maxValueSlope);
 
             if (slope <= slopeValue)
             {
@@ -165,7 +172,7 @@ namespace Война
             }
         }
 
-        public override int DealDamage()
+        protected override int DealDamage()
         {
             int manaPerBlow = 8;
 
@@ -193,7 +200,7 @@ namespace Война
 
         public Warlock() : base("Чернокнижник", 105, 8, 35) { }
 
-        public override int DealDamage()
+        protected override int DealDamage()
         {
             int manaPerBlow = 8;
             int manaPerBurnOfFilth = 20;
@@ -249,7 +256,7 @@ namespace Война
             base.TakeDamage(damage);
         }
 
-        public override int DealDamage()
+        protected override int DealDamage()
         {
             int manaPerBlow = 8;
             int manaPerIceArmor = 15;
@@ -306,21 +313,18 @@ namespace Война
 
         private static void ConductBattle(Platoon platoon1, Platoon platoon2)
         {
-            int numberFirstPlatoon = 1;
-            int numberSecondPlatoon = 2;
-
             while (platoon1.Fighters.Count > 0 && platoon2.Fighters.Count > 0)
             {
-                ConductAttacPlatoon(platoon1, platoon2, numberFirstPlatoon);
-                ConductAttacPlatoon(platoon2, platoon1, numberSecondPlatoon);
+                ConductAttacPlatoon(platoon1, platoon2);
+                ConductAttacPlatoon(platoon2, platoon1);
 
                 Console.ReadKey();
             }
         }
 
-        private static void ConductAttacPlatoon(Platoon attackingSquad, Platoon takingDamageSquad, int numberPlatoon)
+        private static void ConductAttacPlatoon(Platoon attackingSquad, Platoon takingDamageSquad)
         {
-            Console.WriteLine($"Атакует команда {numberPlatoon}");
+            Console.WriteLine($"Атакует команда {attackingSquad.Name}");
 
             attackingSquad.Attack(takingDamageSquad.Fighters);
             attackingSquad.ShowInfo();
@@ -330,9 +334,9 @@ namespace Война
 
         private static void ShowPlatoons(Platoon platoon1, Platoon platoon2)
         {
-            Console.WriteLine("Отряд 1");
+            Console.WriteLine(platoon1.Name);
             platoon1.ShowInfo();
-            Console.WriteLine("Отряд 2");
+            Console.WriteLine(platoon2.Name);
             platoon2.ShowInfo();
         }
 
@@ -341,9 +345,9 @@ namespace Война
             if (platoon1.Fighters.Count == 0 && platoon2.Fighters.Count == 0)
                 Console.WriteLine("Ничья");
             else if (platoon2.Fighters.Count == 0)
-                Console.WriteLine("Победила команда 1");
+                Console.WriteLine($"Победил {platoon1.Name}");
             else if (platoon1.Fighters.Count == 0)
-                Console.WriteLine("Победила команда 2");
+                Console.WriteLine($"Победил {platoon2.Name}");
         }
     }
 
@@ -360,7 +364,7 @@ namespace Война
                 new Magician()
             };
 
-            int fighterIndex = Utils.GetRandomValue(fighters.Count);
+            int fighterIndex = Utils.CreateRandomValue(fighters.Count);
 
             return fighters[fighterIndex];
         }
@@ -370,7 +374,7 @@ namespace Война
     {
         private FighterFactory _fighterFactory = new FighterFactory();
 
-        public Platoon CreateRandom(int groupSize)
+        public Platoon CreateRandom(int groupSize, string name)
         {
             List<Fighter> fighters = new List<Fighter>();
 
@@ -380,7 +384,7 @@ namespace Война
                 fighters.Add(fighter);
             }
 
-            return new Platoon(fighters);
+            return new Platoon(fighters, name);
         }
     }
 
@@ -388,11 +392,14 @@ namespace Война
     {
         private List<Fighter> _fighters = new List<Fighter>();
 
-        public Platoon(List<Fighter> fighters)
+        public Platoon(List<Fighter> fighters, string name)
         {
             _fighters = fighters;
+            Name = name;
         }
         
+        public string Name { get; private set; }
+
         public IReadOnlyList<Fighter> Fighters => _fighters;
 
         public void ShowInfo()
@@ -422,7 +429,7 @@ namespace Война
                 if (enemies.Count == 0)
                     return;
 
-                int enemyIndex = Utils.GetRandomValue(enemies.Count);
+                int enemyIndex = Utils.CreateRandomValue(enemies.Count);
 
                 Fighter enemy = enemies[enemyIndex];
 
@@ -435,12 +442,12 @@ namespace Война
     {
         private static Random s_random = new Random();
 
-        public static int GetRandomValue(int minValue, int maxValue)
+        public static int CreateRandomValue(int minValue, int maxValue)
         {
             return s_random.Next(minValue, maxValue);
         }
 
-        public static int GetRandomValue(int value)
+        public static int CreateRandomValue(int value)
         {
             return s_random.Next(value);
         }
